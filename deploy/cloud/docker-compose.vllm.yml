@@ -1,0 +1,40 @@
+# Phase 2: single-GPU cloud inference option.
+# Serves an OpenAI-compatible /v1/embeddings endpoint consumed by
+# src/embedding_service/backends/cloud.py.
+#
+# Sized for one GPU (A10/L4/4090 class, >=16GB VRAM is comfortable for this
+# 740M model at fp16 plus KV/activation headroom under concurrent requests).
+#
+# Known limitation: vLLM's embeddings endpoint is text-only for this model as
+# of the Oct 2026 release — don't route image/audio requests here yet.
+
+services:
+  embeddinggemma2:
+    image: vllm/vllm-openai:latest
+    command:
+      - --model=google/embeddinggemma-2
+      - --task=embed
+      - --dtype=bfloat16
+      - --max-model-len=8192
+      - --gpu-memory-utilization=0.85
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hf-cache:

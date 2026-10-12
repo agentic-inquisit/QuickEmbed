@@ -1,0 +1,41 @@
+# Model weights — 1.5GB+, regenerate via README's snapshot_download command, never commit
+models/
+
+# Python
+__pycache__/
+*.py[co]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+build/
+dist/
+.coverage
+htmlcov/
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets / local env overrides
+.env
+.env.*
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Node (if any JS tooling gets added later)
+node_modules/
+
+*.log

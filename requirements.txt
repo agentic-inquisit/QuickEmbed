@@ -1,0 +1,12 @@
+sentence-transformers>=6.1.0
+transformers>=5.19.0
+torch
+torchvision
+huggingface_hub
+requests
+qdrant-client
+rich>=13
+psutil>=5.9
+# pynvml is optional, only for local NVIDIA GPU metrics — imported lazily at
+# call time in metrics.py, so it's fine to leave uninstalled on GPU-less
+# hosts like this devcontainer. Install manually on a box with an NVIDIA GPU.
