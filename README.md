@@ -35,6 +35,10 @@ PYTHONPATH=src python3 -m embedding_service.dashboard   # the live dashboard
 
 Type a query and press Enter; press `q` (with empty input) or Ctrl-C to quit.
 
+Documents it searches against come from [`docs/corpus.txt`](docs/corpus.txt)
+(one per line) — edit that file to search your own text, or point at a
+different file with `EMBEDDING_DOCS_FILE=/path/to/corpus.txt`.
+
 ### Optional: cloud backend
 
 Point at a running vLLM server (see [`deploy/cloud/docker-compose.vllm.yml`](deploy/cloud/docker-compose.vllm.yml))

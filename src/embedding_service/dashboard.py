@@ -36,12 +36,16 @@ from .metrics import MetricsSampler, SystemSnapshot
 from .router import EmbeddingRouter
 
 MODEL_DIR = Path(__file__).resolve().parent.parent.parent / "models" / "embeddinggemma-2"
+DOCS_FILE = Path(__file__).resolve().parent.parent.parent / "docs" / "corpus.txt"
 
-DEMO_DOCS = [
-    "Charged particles from the sun interact with gases in Earth's atmosphere, causing the aurora borealis.",
-    "The recipe calls for two cups of flour and a teaspoon of baking soda.",
-    "Photosynthesis converts sunlight into chemical energy stored in glucose.",
-]
+
+def _load_docs(path: Path) -> list[str]:
+    if not path.exists():
+        raise FileNotFoundError(f"Document corpus not found at {path} (one document per line)")
+    docs = [line.strip() for line in path.read_text().splitlines() if line.strip()]
+    if not docs:
+        raise ValueError(f"Document corpus at {path} is empty")
+    return docs
 
 
 class AppState:
@@ -266,12 +270,15 @@ def main() -> None:
     console = Console()
     console.print("Loading EmbeddingGemma 2 (on-device)…")
 
+    docs_path = Path(os.environ.get("EMBEDDING_DOCS_FILE", str(DOCS_FILE)))
+    docs = _load_docs(docs_path)
+
     on_device = OnDeviceBackend(MODEL_DIR)
     cloud_url = os.environ.get("EMBEDDING_CLOUD_URL")
     cloud = CloudBackend(cloud_url) if cloud_url else None
     router = EmbeddingRouter(on_device, cloud)
 
-    doc_vecs = on_device.encode_text(DEMO_DOCS, prompt_name="Document")
+    doc_vecs = on_device.encode_text(docs, prompt_name="Document")
     sampler = MetricsSampler(cloud_metrics_url=f"{cloud.base_url}/metrics" if cloud else None)
 
     state = AppState()
@@ -282,7 +289,7 @@ def main() -> None:
     def build_renderable():
         ui = state.snapshot()
         metrics = sampler.sample()
-        return render_dashboard(ui, metrics, DEMO_DOCS, on_device.is_available, cloud is not None)
+        return render_dashboard(ui, metrics, docs, on_device.is_available, cloud is not None)
 
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -309,7 +316,7 @@ def main() -> None:
                         state.update(
                             status="encoding", last_query=q, encode_started_at=time.monotonic(), error=None
                         )
-                        pending_future = executor.submit(_run_query, router, q, doc_vecs, DEMO_DOCS)
+                        pending_future = executor.submit(_run_query, router, q, doc_vecs, docs)
                 elif pending_future.done():
                     try:
                         results, elapsed = pending_future.result()
