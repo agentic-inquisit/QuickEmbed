@@ -37,7 +37,13 @@ Type a query and press Enter; press `q` (with empty input) or Ctrl-C to quit.
 
 Documents it searches against come from [`docs/corpus.txt`](docs/corpus.txt)
 (one per line) — edit that file to search your own text, or point at a
-different file with `EMBEDDING_DOCS_FILE=/path/to/corpus.txt`.
+different file with `EMBEDDING_DOCS_FILE=/path/to/corpus.txt`. A line can
+also be a path (relative to the corpus file) to an image or video instead
+of literal text: images are embedded with the vision encoder, and video is
+embedded by sampling a few evenly-spaced frames through the same encoder
+and averaging them (this model has no dedicated video encoder — see
+`src/embedding_service/config.py` for the text/vision/audio modalities it
+actually ships).
 
 ### Optional: cloud backend
 
