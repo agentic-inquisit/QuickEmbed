@@ -4,7 +4,9 @@ Quick, local embedding inference for [google/embeddinggemma-2](https://huggingfa
 (740M, multimodal, Apache 2.0), with an optional cloud/GPU fallback and a
 terminal dashboard for watching queries and live compute usage on one
 screen. See [PROPOSAL.md](PROPOSAL.md) for the full architecture, system
-constraints, and phased deployment plan (mobile/browser/desktop/cloud).
+constraints, and phased deployment plan (mobile/browser/desktop/cloud), or
+[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for an expanded,
+step-by-step first-time setup walkthrough.
 
 ## Demo
 
