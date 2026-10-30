@@ -45,6 +45,38 @@ and averaging them (this model has no dedicated video encoder — see
 `src/embedding_service/config.py` for the text/vision/audio modalities it
 actually ships).
 
+### MCP server
+
+The same retrieval logic is also exposed as MCP tools (`search_corpus`,
+`embed_text`, `corpus_info`, `reload_corpus`) in
+[`mcp_server.py`](src/embedding_service/mcp_server.py), so an MCP client
+(Claude Code, Claude Desktop, etc.) can call into it directly instead of
+only a human at the dashboard's terminal:
+
+```bash
+PYTHONPATH=src python3 -m embedding_service.mcp_server
+```
+
+Register it in an MCP client's config (e.g. a project's `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "quickembed": {
+      "command": "python3",
+      "args": ["-m", "embedding_service.mcp_server"],
+      "env": { "PYTHONPATH": "src" }
+    }
+  }
+}
+```
+
+The model is loaded once at server startup (not per call) — the first tool
+call after launch will be slow (model load), subsequent calls reuse it.
+`EMBEDDING_DOCS_FILE`/`EMBEDDING_CLOUD_URL` env vars work the same as for
+the dashboard; use the `reload_corpus` tool to pick up corpus edits without
+restarting the server.
+
 ### Optional: cloud backend
 
 Point at a running vLLM server (see [`deploy/cloud/docker-compose.vllm.yml`](deploy/cloud/docker-compose.vllm.yml))
