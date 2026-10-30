@@ -1,6 +1,10 @@
 # Model weights — 1.5GB+, regenerate via README's snapshot_download command, never commit
 models/
 
+# Benchmark write-up + one-off script from the benchmarking discussion — not product code
+BENCHMARK.md
+benchmarks/
+
 # Python
 __pycache__/
 *.py[co]
