@@ -96,6 +96,16 @@ EMBEDDING_CLOUD_URL=http://<host>:8000 PYTHONPATH=src python3 -m embedding_servi
 - `ModuleNotFoundError: requests` — needed by `backends/cloud.py` even when
   the cloud backend isn't used, since the module is imported at class-
   definition time. Fix: `pip install requests` (already in `requirements.txt`).
+- `NameError: name 'nn' is not defined` deep inside
+  `transformers/integrations/accelerate.py` (Windows) — `torch` is
+  "installed" but failed to actually import; `transformers` degrades
+  gracefully until this unrelated line crashes. Almost always a missing
+  Microsoft Visual C++ Redistributable, which `torch` needs even for
+  CPU-only use. Fix: install it from
+  https://aka.ms/vs/17/release/vc_redist.x64.exe, then re-run
+  `install.ps1` (it now checks `torch`/`transformers` import cleanly
+  before doing anything else, so this fails fast with a clear message
+  instead of surfacing here).
 
 ## Other deployment targets
 

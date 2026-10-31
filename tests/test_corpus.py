@@ -1,5 +1,7 @@
 """Pure-logic tests for src/embedding_service/corpus.py - no real model
-needed, uses a fake backend, so these run without the 1.5GB checkpoint.
+needed, uses a fake backend, so these run without the 1.5GB checkpoint
+(and without torch/transformers even importing - see corpus.py's
+TYPE_CHECKING-gated OnDeviceBackend import).
 """
 
 import sys
@@ -11,31 +13,33 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from embedding_service import corpus  # noqa: E402
+from embedding_service.backends.base import EmbeddingBackend  # noqa: E402
+from embedding_service.router import EmbeddingRouter  # noqa: E402
 
 
-class FakeOnDevice:
-    """Deterministic stand-in for OnDeviceBackend - returns unit vectors so
-    we can assert exact pooling/renormalization math."""
+class FakeOnDevice(EmbeddingBackend):
+    """Deterministic stand-in for OnDeviceBackend - a real subclass of the
+    EmbeddingBackend ABC (not just duck-typed), so it's held to the same
+    contract OnDeviceBackend/CloudBackend are, and can be wrapped in the
+    real EmbeddingRouter instead of needing a separate fake router."""
 
-    def encode_text(self, texts, *, prompt_name=None):
-        return np.stack([np.array([1.0, 0.0, 0.0]) for _ in texts])
-
-    def encode_image(self, blobs):
-        v = np.array([0.0, 1.0, 1.0])
-        v = v / np.linalg.norm(v)
-        return np.stack([v for _ in blobs])
-
-
-class FakeRouter:
-    """Mimics EmbeddingRouter.encode_text's signature for run_query."""
-
-    def __init__(self, query_vec: np.ndarray, expected_prompt: str = "SearchQuery"):
-        self._query_vec = query_vec
+    def __init__(self, text_vec: np.ndarray | None = None, expected_prompt: str | None = None):
+        self._text_vec = text_vec if text_vec is not None else np.array([1.0, 0.0, 0.0])
         self._expected_prompt = expected_prompt
 
+    @property
+    def is_available(self) -> bool:
+        return True
+
     def encode_text(self, texts, *, prompt_name=None):
-        assert prompt_name == self._expected_prompt
-        return np.array([self._query_vec])
+        if self._expected_prompt is not None:
+            assert prompt_name == self._expected_prompt
+        return np.stack([self._text_vec for _ in texts])
+
+    def encode_image(self, images):
+        v = np.array([0.0, 1.0, 1.0])
+        v = v / np.linalg.norm(v)
+        return np.stack([v for _ in images])
 
 
 @pytest.fixture
@@ -114,7 +118,8 @@ def test_run_query_ranks_by_cosine_similarity_descending():
     )
     docs = [corpus.DocItem(label=f"doc{i}", kind="text", source=f"doc{i}") for i in range(4)]
 
-    ranked, elapsed = corpus.run_query(FakeRouter(query_dir), "irrelevant", doc_vecs, docs)
+    router = EmbeddingRouter(FakeOnDevice(text_vec=query_dir, expected_prompt="SearchQuery"))
+    ranked, elapsed = corpus.run_query(router, "irrelevant", doc_vecs, docs)
 
     labels = [d.label for d, _ in ranked]
     scores = [s for _, s in ranked]

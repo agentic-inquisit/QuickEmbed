@@ -8,12 +8,17 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 
-from .backends.on_device import OnDeviceBackend
 from .router import EmbeddingRouter
+
+if TYPE_CHECKING:
+    # Only ever used as a type hint below - deferred so importing this
+    # module (e.g. for the pure-logic tests in tests/test_corpus.py) never
+    # requires torch/transformers/sentence-transformers to import cleanly.
+    from .backends.on_device import OnDeviceBackend
 
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
 _VIDEO_EXTS = {".mp4", ".mov", ".webm", ".mkv", ".avi"}

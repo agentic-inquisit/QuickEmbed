@@ -4,6 +4,15 @@ A step-by-step first-time setup, from a clean checkout to a working query.
 For the condensed version, see [README.md](../README.md#run-it-locally);
 this is the expanded walkthrough with expected output at each step.
 
+**Windows**: steps 2-4 below are collapsed into [`install.ps1`](../install.ps1)
+(creates the venv, installs only what's missing, downloads the model, then
+verifies), and step 5 into [`init.ps1`](../init.ps1) (`.\init.ps1` for the
+dashboard, `.\init.ps1 -Mode mcp` for the MCP server) — install is kept
+separate from launch so re-running setup never also starts the app.
+Double-click [`install.bat`](../install.bat) / [`init.bat`](../init.bat)
+instead of the `.ps1` files directly to skip PowerShell's execution-policy
+prompt entirely — they just launch the matching `.ps1` safely.
+
 ## 1. Check prerequisites
 
 - Python 3.10+ (`python3 --version`)
